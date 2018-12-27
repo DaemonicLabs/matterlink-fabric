@@ -1,11 +1,9 @@
-object MatterLink {
-    const val version = "1.6.5"
-}
-
-object Kotlin {
-    const val version = "1.3.0"
-}
-
-object Forgelin {
-    const val version = "1.8.0"
+object Constants {
+    const val modid = "matterlink"
+    const val group = "moe.nikky"
+    const val name = modid
+    const val major = 0
+    const val minor = 0
+    const val patch = 1
+    const val description = "Crossplatform chat bridge"
 }

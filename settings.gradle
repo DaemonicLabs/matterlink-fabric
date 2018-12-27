@@ -1,4 +1,0 @@
-rootProject.name = 'MatterLink'
-include 'core'
-include 'Jankson'
-include '1.12.2', '1.9.4', '1.7.10'
