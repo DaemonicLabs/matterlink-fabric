@@ -12,7 +12,7 @@ import matterlink.config.BaseConfig
 import matterlink.config.cfg
 import matterlink.handlers.TickHandler
 import net.fabricmc.api.DedicatedServerModInitializer
-import net.fabricmc.fabric.events.TickEvent
+import net.fabricmc.fabric.api.event.server.ServerTickCallback
 import net.minecraft.server.dedicated.MinecraftDedicatedServer
 import net.minecraft.sortme.ChatMessageType
 import net.minecraft.text.StringTextComponent
@@ -31,35 +31,35 @@ object Matterlink : DedicatedServerModInitializer, MatterlinkBase() {
     }
 
     override fun wrappedSendToPlayers(msg: String) {
-        server.configurationManager.playerList.forEach {
+        server.playerManager.playerList.forEach {
             it.sendChatMessage(StringTextComponent(msg), ChatMessageType.CHAT)
         }
     }
 
     override fun wrappedSendToPlayer(username: String, msg: String) {
-        server.configurationManager.getPlayer(username)?.sendChatMessage(StringTextComponent(msg), ChatMessageType.CHAT)
+        server.playerManager.getPlayer(username)?.sendChatMessage(StringTextComponent(msg), ChatMessageType.CHAT)
     }
 
     override fun wrappedSendToPlayer(uuid: UUID, msg: String) {
-        server.configurationManager.getPlayer(uuid)?.sendChatMessage(StringTextComponent(msg), ChatMessageType.CHAT)
+        server.playerManager.getPlayer(uuid)?.sendChatMessage(StringTextComponent(msg), ChatMessageType.CHAT)
     }
 
     override fun isOnline(username: String): Boolean {
-        return server.configurationManager.getPlayer(username) != null
+        return server.playerManager.getPlayer(username) != null
     }
 
     override fun nameToUUID(username: String): UUID? {
-        return server.configurationManager.getPlayer(username)?.uuid
+        return server.playerManager.getPlayer(username)?.uuid
     }
 
     override fun uuidToName(uuid: UUID): String? {
-        return server.configurationManager.getPlayer(uuid)?.entityName
+        return server.playerManager.getPlayer(uuid)?.entityName
     }
 
     override fun onInitializeServer() = runBlocking<Unit> {
         logger.info("Matterlink server starting")
 
-        TickEvent.SERVER.register(TickHandler)
+        ServerTickCallback.EVENT.register(TickHandler)
 
         // TODO: register commands
 
@@ -76,9 +76,7 @@ object Matterlink : DedicatedServerModInitializer, MatterlinkBase() {
         logger.debug("Registering bridge commands")
         registerBridgeCommands()
 
-        runBlocking {
-            start()
-        }
+        start()
     }
 
     const val mcVersion: String = MC_VERSION

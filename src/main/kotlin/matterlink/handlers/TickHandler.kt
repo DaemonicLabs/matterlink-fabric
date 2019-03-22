@@ -2,22 +2,22 @@ package matterlink.handlers
 
 import kotlinx.coroutines.runBlocking
 import matterlink.update.UpdateChecker
+import net.fabricmc.fabric.api.event.server.ServerTickCallback
 import net.minecraft.server.MinecraftServer
-import java.util.function.Consumer
 
 /**
  * Created by nikky on 21/02/18.
  * @author Nikky
  * @version 1.0
  */
-object TickHandler : Consumer<MinecraftServer> {
+object TickHandler : ServerTickCallback {
 
     var tickCounter = 0
         private set
     private var accumulator = 0
     private const val updateInterval = 12 * 60 * 60 * 20
 
-    override fun accept(t: MinecraftServer) = runBlocking {
+    override fun tick(t: MinecraftServer) = runBlocking {
         handleTick()
     }
 

@@ -8,7 +8,7 @@ plugins {
     idea
     `maven-publish`
     id("constantsGenerator")
-    id("moe.nikky.persistentCounter") version "0.0.5"
+    id("moe.nikky.persistentCounter") version "0.0.7-SNAPSHOT"
     kotlin("jvm") version Kotlin.version
     id("kotlinx-serialization") version Kotlin.version
     id("com.github.johnrengelman.shadow") version "4.0.3"
@@ -92,13 +92,13 @@ repositories {
     maven(url = "https://kotlin.bintray.com/kotlinx") {
         name = "kotlinx"
     }
-    maven(url = "https://jitpack.io") {
-        name = "jitpack"
+//    maven(url = "https://jitpack.io") {
+//        name = "jitpack"
+//    }
+    maven(url = "https://dl.bintray.com/kittinunf/maven/") {
+        name = "bintray-fuel"
     }
-    maven(url = "https://repo.elytradev.com") {
-        name = "elytradev"
-    }
-//    mavenCentral()
+    mavenCentral()
     jcenter()
 }
 
@@ -112,9 +112,7 @@ dependencies {
 
     modCompile(group = "net.fabricmc", name = "fabric-loader", version = Fabric.version)
 
-    modCompile(group = "net.fabricmc", name = "fabric-language-kotlin", version = Fabric.LanguageKotlin.version) {
-        isTransitive = true
-    }
+    api(group = "net.fabricmc", name = "fabric-language-kotlin", version = Fabric.LanguageKotlin.version)
 
     modCompile(group = "net.fabricmc", name = "fabric", version = Fabric.FabricAPI.version)
 
@@ -124,15 +122,15 @@ dependencies {
         version = KotlinX.Serialization.version
     )
 
-    shadow(group = "com.github.kittinunf.Fuel", name = "fuel", version = Fuel.version)
+    shadow(group = "com.github.kittinunf.fuel", name = "fuel", version = Fuel.version)
 
-    shadow(group = "com.github.kittinunf.Fuel", name = "fuel-coroutines", version = Fuel.version)
+    shadow(group = "com.github.kittinunf.fuel", name = "fuel-coroutines", version = Fuel.version)
 
-    shadow(group = "com.github.kittinunf.Fuel", name = "fuel-kotlinx-serialization", version = Fuel.version)
+    shadow(group = "com.github.kittinunf.fuel", name = "fuel-kotlinx-serialization", version = Fuel.version)
 
     shadow(group = "com.github.kittinunf.result", name = "result", version = "2.0.0")
 
-    shadow(group = "blue.endless", name = "jankson", version = "1.0.0-7")
+    shadow(group = "blue.endless", name = "jankson", version = "1.1.0")
 }
 
 configurations {
@@ -243,5 +241,29 @@ publishing {
                 }
             }
         }
+    }
+}
+
+task<DefaultTask>("depsize") {
+    group = "help"
+    description = "prints dependency sizes"
+    doLast {
+        val formatStr = "%,10.2f"
+        val size = configurations.default.resolve()
+            .map { it.length() / (1024.0 * 1024.0) }.sum()
+
+        val out = buildString {
+            append("Total dependencies size:".padEnd(45))
+            append("${String.format(formatStr, size)} Mb\n\n")
+            configurations
+                .default
+                .resolve()
+                .sortedWith(compareBy { -it.length() })
+                .forEach {
+                    append(it.name.padEnd(45))
+                    append("${String.format(formatStr, (it.length() / 1024.0))} kb\n")
+                }
+        }
+        println(out)
     }
 }

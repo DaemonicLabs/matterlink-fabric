@@ -5,6 +5,7 @@ import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.fuel.serialization.kotlinxDeserializerOf
 import com.github.kittinunf.result.Result
 import kotlinx.serialization.json.JSON
+import kotlinx.serialization.json.Json
 import matterlink.logger
 
 /**
@@ -22,7 +23,7 @@ class JenkinsServer(val url: String) {
         val (_, _, result) = requestURL
             .httpGet()
             .header("User-Agent" to userAgent)
-            .responseObject(kotlinxDeserializerOf(loader = Job.serializer(), json = JSON.nonstrict))
+            .responseObject(kotlinxDeserializerOf(loader = Job.serializer(), json = Json.nonstrict))
         return when (result) {
             is Result.Success -> {
                 result.value

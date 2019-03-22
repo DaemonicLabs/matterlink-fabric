@@ -1,19 +1,19 @@
 object Minecraft {
-    const val version = "18w50a"
+    const val version = "19w12a"
 }
 
 object Kotlin {
-    const val version = "1.3.10"
+    const val version = "1.3.21"
 }
 
 object KotlinX {
     object Serialization {
-        const val version = "0.9.1"
+        const val version = "0.10.0"
     }
 }
 
 object Fabric {
-    const val version = "0.3.0.74"
+    const val version = "0.3.7.+"
     object Loom {
         const val version = "0.2.0-SNAPSHOT"
     }
@@ -21,13 +21,13 @@ object Fabric {
         const val version = "+"
     }
     object FabricAPI {
-        const val version = "0.1.2.63"
+        const val version = "0.2.5.+"
     }
     object LanguageKotlin {
-        const val version = Kotlin.version + "-28"
+        const val version = Kotlin.version + "-SNAPSHOT"
     }
 }
 
 object Fuel {
-    const val version = "8690665998"
+    const val version = "2.0.1"
 }
