@@ -8,7 +8,7 @@ plugins {
     idea
     `maven-publish`
     id("constantsGenerator")
-    id("moe.nikky.persistentCounter") version "0.0.7-SNAPSHOT"
+    id("moe.nikky.persistentCounter") version "0.0.8-SNAPSHOT"
     kotlin("jvm") version Kotlin.version
     id("kotlinx-serialization") version Kotlin.version
     id("com.github.johnrengelman.shadow") version "4.0.3"
@@ -34,15 +34,8 @@ val major = Constants.major
 val minor = Constants.minor
 val patch = Constants.patch
 
-counter {
-    variable(id = "buildnumber", key = "$major.$minor.$patch${Env.branch}") {
-        default = 1
-    }
-}
-
 val counter: CounterExtension = extensions.getByType()
-
-val buildnumber by counter.map
+val buildnumber = counter.variable(id = "buildnumber", key = "$major.$minor.$patch${Env.branch}")
 
 group = Constants.group
 description = Constants.description
@@ -102,7 +95,7 @@ repositories {
     jcenter()
 }
 
-configurations.runtimeOnly.extendsFrom(configurations.modCompile)
+configurations.runtime.extendsFrom(configurations.modCompile)
 configurations.api.extendsFrom(configurations.shadow)
 
 dependencies {
@@ -112,7 +105,8 @@ dependencies {
 
     modCompile(group = "net.fabricmc", name = "fabric-loader", version = Fabric.version)
 
-    api(group = "net.fabricmc", name = "fabric-language-kotlin", version = Fabric.LanguageKotlin.version)
+    modCompile(group = "net.fabricmc", name = "fabric-language-kotlin", version = Fabric.LanguageKotlin.version)
+//    compileOnly(group = "net.fabricmc", name = "fabric-language-kotlin", version = Fabric.LanguageKotlin.version)
 
     modCompile(group = "net.fabricmc", name = "fabric", version = Fabric.FabricAPI.version)
 
