@@ -1,27 +1,35 @@
 {
+  "schemaVersion": 1,
   "id": "matterlink",
   "name": "Matterlink",
   "version": "$version",
-  "side": "server",
-  "initializer": "matterlink.Matterlink",
-  "languageAdapter": "net.fabricmc.language.kotlin.KotlinLanguageAdapter",
-  "requires": {
-    "fabric-language-kotlin": {
-      "version": ">=${fabricKotlin}"
-    },
-    "fabric": {
-      "version": ">=0.1.1"
-    }
-  },
-  "mixins": {
-    "server": "mixins.matterlink.dedicated.json"
-  },
   "description": "cross platform chat bridge",
   "authors": [
-    "NikkyAi root@nikky.moe"
+    "Nikky"
   ],
-  "links": {
-    "issues": "",
-    "sources": ""
-  }
+  "contact": {
+    "homepage": "https://minecraft.curseforge.com/projects/matterlink",
+    "irc": "irc://irc.esper.net:6667/ruby",
+    "issues": "https://github.com/DaemonicLabs/matterlink-fabric/issues",
+    "sources": "https://github.com/DaemonicLabs/matterlink-fabric"
+  },
+  "entrypoints": {
+    "main": [
+      {
+        "adapter": "kotlin",
+        "value": "matterlink.Matterlink"
+      }
+    ]
+  },
+  "mixins": [
+    {
+      "environment": "server",
+      "config": "mixins.matterlink.dedicated.json"
+    }
+  ],
+  "depends": {
+    "fabric-language-kotlin": ">=${kotlinVersion}",
+    "fabric-events-lifecycle-v0": ">=0.1.0"
+  },
+  "license": "MIT"
 }

@@ -2,9 +2,8 @@ package matterlink.handlers
 
 import kotlinx.coroutines.runBlocking
 import matterlink.update.UpdateChecker
-import net.fabricmc.fabric.api.event.server.ServerTickCallback
 import net.minecraft.server.MinecraftServer
-
+import net.fabricmc.fabric.api.event.server.ServerTickCallback
 /**
  * Created by nikky on 21/02/18.
  * @author Nikky

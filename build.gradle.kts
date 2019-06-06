@@ -1,18 +1,17 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import moe.nikky.counter.CounterExtension
-import net.fabricmc.loom.task.RemapJar
+import net.fabricmc.loom.task.RemapJarTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import plugin.generateconstants.GenerateConstantsTask
 
 plugins {
     idea
     `maven-publish`
+    kotlin("jvm") version Kotlin.version
+    id("fabric-loom") version Fabric.Loom.version
     id("constantsGenerator")
     id("moe.nikky.persistentCounter") version "0.0.8-SNAPSHOT"
-    kotlin("jvm") version Kotlin.version
+    id("moe.nikky.loom-production-env") version "0.0.1-SNAPSHOT"
     id("kotlinx-serialization") version Kotlin.version
-    id("com.github.johnrengelman.shadow") version "4.0.3"
-    id("fabric-loom") version Fabric.Loom.version
 }
 
 idea {
@@ -34,7 +33,6 @@ val major = Constants.major
 val minor = Constants.minor
 val patch = Constants.patch
 
-val counter: CounterExtension = extensions.getByType()
 val buildnumber = counter.variable(id = "buildnumber", key = "$major.$minor.$patch${Env.branch}")
 
 group = Constants.group
@@ -43,6 +41,12 @@ version = "$major.$minor.$patch-$buildnumber${Env.branch}"
 
 minecraft {
     //    refmapName = "matterlink.refmap.json"
+}
+
+production {
+    server {
+        workingDirectory = file("run")
+    }
 }
 
 val folder = listOf("matterlink")
@@ -64,7 +68,7 @@ configure<ConstantsExtension> {
         field("VERSION") value "$major.$minor.$patch"
         field("FULL_VERSION") value "$major.$minor.$patch-${Env.versionSuffix}"
         field("MC_VERSION") value "1.14"
-        field("FABRIC_API_VERSION") value Fabric.FabricAPI.version
+        field("FABRIC_API_VERSION") value Fabric.API.version
     }
 }
 
@@ -95,124 +99,97 @@ repositories {
     jcenter()
 }
 
-configurations.runtime.extendsFrom(configurations.modCompile)
-configurations.api.extendsFrom(configurations.shadow)
+//configurations.runtime.extendsFrom(configurations.modCompile)
+configurations.modCompile.get().extendsFrom(configurations.include.get())
+//configurations.include.get().
 
 dependencies {
     minecraft(group = "com.mojang", name = "minecraft", version = Minecraft.version)
 
-    mappings(group = "net.fabricmc", name = "yarn", version = "${Minecraft.version}.${Fabric.Yarn.version}")
+    mappings(group = "net.fabricmc", name = "yarn", version = Fabric.Yarn.version)
 
-    modCompile(group = "net.fabricmc", name = "fabric-loader", version = Fabric.version)
+    modCompile(group = "net.fabricmc", name = "fabric-loader", version = Fabric.Loader.version)
 
     modCompile(group = "net.fabricmc", name = "fabric-language-kotlin", version = Fabric.LanguageKotlin.version)
 //    compileOnly(group = "net.fabricmc", name = "fabric-language-kotlin", version = Fabric.LanguageKotlin.version)
 
-    modCompile(group = "net.fabricmc", name = "fabric", version = Fabric.FabricAPI.version)
+    // TODO: only include the bits i need
+//    modCompile(group = "net.fabricmc.fabric-api", name = "fabric-api", version = Fabric.API.version)
+//    include(
+//        group = "net.fabricmc.fabric-api",
+//        name = "fabric-api",
+//        version = Fabric.API.version
+//    )
+    include(
+        group = "net.fabricmc.fabric-api",
+        name = "fabric-api-base",
+        version = "0.1.0+"
+    )
+    include(
+        group = "net.fabricmc.fabric-api",
+        name = "fabric-events-lifecycle",
+        version = "0.1.0+"
+    )
 
-    shadow(
+    include(
         group = "org.jetbrains.kotlinx",
         name = "kotlinx-serialization-runtime",
         version = KotlinX.Serialization.version
     )
 
-    shadow(group = "com.github.kittinunf.fuel", name = "fuel", version = Fuel.version)
+    include(group = "com.github.kittinunf.fuel", name = "fuel", version = Fuel.version)
+    include(group = "com.github.kittinunf.fuel", name = "fuel-coroutines", version = Fuel.version)
+    include(group = "com.github.kittinunf.fuel", name = "fuel-kotlinx-serialization", version = Fuel.version)
+    include(group = "com.github.kittinunf.result", name = "result", version = "2.0.0")
 
-    shadow(group = "com.github.kittinunf.fuel", name = "fuel-coroutines", version = Fuel.version)
-
-    shadow(group = "com.github.kittinunf.fuel", name = "fuel-kotlinx-serialization", version = Fuel.version)
-
-    shadow(group = "com.github.kittinunf.result", name = "result", version = "2.0.0")
-
-    shadow(group = "blue.endless", name = "jankson", version = "1.1.0")
+    include(group = "blue.endless", name = "jankson", version = "1.1.0")
 }
-
-configurations {
-    getByName("shadow") {
-        isTransitive = false
-    }
-//    project.configurations.runtimeOnlyDependenciesMetadata.apply {
-//        exclude(group = "net.minecraft", module = "minecraft")
-//        resolvedConfiguration.firstLevelModuleDependencies.forEach {
-//            println("runtimeOnlyDependenciesMetadata $it")
-//            configurations.shadow.exclude(group = it.moduleGroup, module = it.moduleName)
-//        }
-//    }
-}
-
 
 tasks.getByName<ProcessResources>("processResources") {
     filesMatching("fabric.mod.json") {
         expand(
             mutableMapOf(
-                "fabricKotlin" to Fabric.LanguageKotlin.version,
+                "kotlinVersion" to Kotlin.version,
                 "version" to version
             )
         )
     }
 }
 
-val shadowJar by tasks.getting(ShadowJar::class) {
-    classifier = ""
-    configurations = project.configurations.run { listOf(shadow) }
+val jar = tasks.getByName<Jar>("jar")
+val remapJar = tasks.getByName<RemapJarTask>("remapJar")
 
-//    dependencies {
-//        println("configuring dependencies")
-//        project.configurations.runtimeOnlyDependenciesMetadata.resolvedConfiguration.firstLevelModuleDependencies.forEach {
-//            println("runtimeOnlyDependenciesMetadata: $it")
-//            exclude(dependency("${it.moduleGroup}:${it.moduleName}"))
+//fun shadowComponents(publication: MavenPublication, vararg configurations: Configuration) {
+//    publication.pom.withXml {
+//        val dependenciesNode = asNode().appendNode("dependencies")
+//
+//        project.configurations.shadow.allDependencies.forEach {
+//            if (it !is SelfResolvingDependency) {
+//                val dependencyNode = dependenciesNode.appendNode("dependency")
+//                dependencyNode.appendNode("groupId", it.group)
+//                dependencyNode.appendNode("artifactId", it.name)
+//                dependencyNode.appendNode("version", it.version)
+//                dependencyNode.appendNode("scope", "runtime")
+//            }
+//        }
+//        configurations.forEach { configuration ->
+//            println("processing: $configuration")
+//            configuration.dependencies.forEach inner@{ dependency ->
+//                if (dependency !is SelfResolvingDependency) {
+//                    if (dependency is ModuleDependency && !dependency.isTransitive) {
+//                        return@inner
+//                    }
+//
+//                    val dependencyNode = dependenciesNode.appendNode("dependency")
+//                    dependencyNode.appendNode("groupId", dependency.group)
+//                    dependencyNode.appendNode("artifactId", dependency.name)
+//                    dependencyNode.appendNode("version", dependency.version)
+//                    dependencyNode.appendNode("scope", configuration.name)
+//                }
+//            }
 //        }
 //    }
-
-
-//    project.configurations.runtime.allDependencies.forEach {
-//        println("runtime: $it")
-//    }
-
-    relocate("com.github", "matterlink.repack.com.github") { }
-    relocate("org.jetbrains", "matterlink.repack.org.jetbrains") { }
-    relocate("blue.endless", "matterlink.repack.blue.endless") { }
-    relocate("kotlinx.io", "matterlink.repack.kotlinx.io") { }
-    relocate("kotlinx.serialization", "matterlink.repack.kotlinx.serialization") { }
-//    relocate("kotlinx", "matterlink.repack.kotlinx") { }
-}
-
-val remapJar = tasks.getByName<RemapJar>("remapJar") {
-    (this as Task).dependsOn(shadowJar)
-    jar = shadowJar.archivePath
-}
-
-fun shadowComponents(publication: MavenPublication, vararg configurations: Configuration) {
-    publication.pom.withXml {
-        val dependenciesNode = asNode().appendNode("dependencies")
-
-        project.configurations.shadow.allDependencies.forEach {
-            if (it !is SelfResolvingDependency) {
-                val dependencyNode = dependenciesNode.appendNode("dependency")
-                dependencyNode.appendNode("groupId", it.group)
-                dependencyNode.appendNode("artifactId", it.name)
-                dependencyNode.appendNode("version", it.version)
-                dependencyNode.appendNode("scope", "runtime")
-            }
-        }
-        configurations.forEach { configuration ->
-            println("processing: $configuration")
-            configuration.dependencies.forEach inner@{ dependency ->
-                if (dependency !is SelfResolvingDependency) {
-                    if (dependency is ModuleDependency && !dependency.isTransitive) {
-                        return@inner
-                    }
-
-                    val dependencyNode = dependenciesNode.appendNode("dependency")
-                    dependencyNode.appendNode("groupId", dependency.group)
-                    dependencyNode.appendNode("artifactId", dependency.name)
-                    dependencyNode.appendNode("version", dependency.version)
-                    dependencyNode.appendNode("scope", configuration.name)
-                }
-            }
-        }
-    }
-}
+//}
 
 publishing {
     publications {
@@ -221,8 +198,10 @@ publishing {
             artifactId = project.name.toLowerCase()
             version = project.version.toString()
 
-            artifact(shadowJar)
-            shadowComponents(this, configurations.modCompile)
+            artifact(jar) {
+                builtBy(remapJar)
+            }
+//            shadowComponents(this, configurations.modCompile)
         }
     }
     repositories {

@@ -2,7 +2,7 @@ package matterlink.mixin;
 
 import matterlink.handlers.JoinLeaveHandler;
 import net.minecraft.network.ClientConnection;
-import net.minecraft.text.TextComponent;
+import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -14,7 +14,7 @@ abstract class ClientConnectionMixin {
     @Inject(at = @At("HEAD"), method = "handleDisconnection")
     public void onHandleDisconnection(CallbackInfo ci) {
         ClientConnection connection = (ClientConnection) (Object) this;
-        TextComponent reason = connection.getDisconnectReason();
+        Component reason = connection.getDisconnectReason();
         String message = "unknown reason";
         if(reason != null) {
             message = reason.getFormattedText();
