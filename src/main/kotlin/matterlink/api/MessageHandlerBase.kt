@@ -17,7 +17,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.actor
 import kotlinx.coroutines.channels.broadcast
 import kotlinx.coroutines.channels.consumeEach
@@ -46,7 +45,7 @@ open class MessageHandlerBase : CoroutineScope {
     private var reconnectCooldown = 0L
     private var sendErrors = 0
 
-    private var sendChannel: SendChannel<ApiMessage> = senderActor()
+//    private var sendChannel: SendChannel<ApiMessage> = senderActor()
 
     private val messageStream = Channel<ApiMessage>(Channel.UNLIMITED)
     @UseExperimental(ExperimentalCoroutinesApi::class)
@@ -57,6 +56,7 @@ open class MessageHandlerBase : CoroutineScope {
         }
     }
         private set
+
     private val keepOpenManager = FuelManager().apply {
         timeoutInMillisecond = 0
         timeoutReadInMillisecond = 0
@@ -84,8 +84,10 @@ open class MessageHandlerBase : CoroutineScope {
         enabled = true
 
         rcvJob = messageBroadcast()
+        logger.info("started rcvJob")
 
         if (message != null && config.announceConnect) {
+            logger.info("sending status update")
             sendStatusUpdate(message)
         }
     }
@@ -129,22 +131,14 @@ open class MessageHandlerBase : CoroutineScope {
             msg.username = config.systemUser
         if (msg.gateway.isEmpty()) {
             logger.error("missing gateway on message: $msg")
-            return
+            msg.gateway = config.gateway
         }
-        logger.debug("Transmitting: $msg")
-        sendChannel.send(msg)
-//        }
-    }
-
-    @Deprecated("use coroutine api", level = DeprecationLevel.ERROR)
-    fun checkConnection() {
-    }
-
-    @UseExperimental(ObsoleteCoroutinesApi::class)
-    private fun CoroutineScope.senderActor() = actor<ApiMessage>(context = Dispatchers.IO) {
-        consumeEach {
+        logger.info("Transmitting: $msg")
+//        sendChannel.send(msg)
+        msg.let {
             try {
                 logger.debug("sending $it")
+                logger.info("sending $it ${it.encode()}")
                 val url = "${config.url}/api/message"
                 val (request, response, result) = url.httpPost()
                     .apply {
@@ -156,7 +150,7 @@ open class MessageHandlerBase : CoroutineScope {
                     .responseString()
                 when (result) {
                     is Result.Success -> {
-                        logger.debug("sent $it")
+                        logger.info("sent $it")
                         sendErrors = 0
                     }
                     is Result.Failure -> {
@@ -176,7 +170,46 @@ open class MessageHandlerBase : CoroutineScope {
                 sendErrors++
             }
         }
+//        }
     }
+
+//    @UseExperimental(ObsoleteCoroutinesApi::class)
+//    private fun CoroutineScope.senderActor() = actor<ApiMessage>(context = Dispatchers.IO) {
+//        consumeEach {
+//            try {
+//                logger.debug("sending $it")
+//                val url = "${config.url}/api/message"
+//                val (request, response, result) = url.httpPost()
+//                    .apply {
+//                        if (config.token.isNotEmpty()) {
+//                            headers["Authorization"] = "Bearer ${config.token}"
+//                        }
+//                    }
+//                    .jsonBody(it.encode())
+//                    .responseString()
+//                when (result) {
+//                    is Result.Success -> {
+//                        logger.debug("sent $it")
+//                        sendErrors = 0
+//                    }
+//                    is Result.Failure -> {
+//                        sendErrors++
+//                        logger.error("failed to deliver: $it")
+//                        logger.error("url: $url")
+//                        logger.error("cUrl: ${request.cUrlString()}")
+//                        logger.error("response: $response")
+//                        logger.error(result.error.exception.localizedMessage)
+//                        result.error.exception.printStackTrace()
+////                    close()
+//                        throw result.error.exception
+//                    }
+//                }
+//            } catch (connectError: ConnectException) {
+//                connectError.printStackTrace()
+//                sendErrors++
+//            }
+//        }
+//    }
 
     private fun CoroutineScope.messageBroadcast() = launch(context = Dispatchers.IO + CoroutineName("msgBroadcaster")) {
         loop@ while (isActive) {

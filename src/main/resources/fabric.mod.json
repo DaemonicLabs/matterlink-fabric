@@ -14,7 +14,7 @@
     "sources": "https://github.com/DaemonicLabs/matterlink-fabric"
   },
   "entrypoints": {
-    "main": [
+    "server": [
       {
         "adapter": "kotlin",
         "value": "matterlink.Matterlink"
@@ -29,7 +29,7 @@
   ],
   "depends": {
     "fabric-language-kotlin": ">=${kotlinVersion}",
-    "fabric-events-lifecycle-v0": ">=0.1.0"
+    "fabric-events-lifecycle": ">=0.1.0"
   },
   "license": "MIT"
 }

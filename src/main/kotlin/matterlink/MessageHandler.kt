@@ -11,15 +11,15 @@ object MessageHandler : MessageHandlerBase() {
         transmit(msg, cause = "")
     }
 
-    override suspend fun sendStatusUpdate(message: String) {
-        LocationHandler.sendToLocations(
-            msg = message,
-            x = 0, y = 0, z = 0, dimension = null,
-            systemuser = true,
-            event = ChatEvent.STATUS,
-            cause = "status update message"
-        )
-    }
+//    override suspend fun sendStatusUpdate(message: String) {
+//        LocationHandler.sendToLocations(
+//            msg = message,
+//            x = 0, y = 0, z = 0, dimension = null,
+//            systemuser = true,
+//            event = ChatEvent.STATUS,
+//            cause = "status update message"
+//        )
+//    }
 
     suspend fun transmit(msg: ApiMessage, cause: String, maxLines: Int = cfg.outgoing.inlineLimit) {
         if (msg.username.isEmpty()) {
@@ -30,8 +30,10 @@ object MessageHandler : MessageHandlerBase() {
             }
         }
         if (msg.gateway.isEmpty()) {
-            logger.error("dropped message '$msg' due to missing gateway")
-            return
+            logger.error("missing gateway on message: $msg")
+            msg.gateway = config.gateway
+//            logger.error("dropped message '$msg' due to missing gateway")
+//            return
         }
 
         if (msg.text.lines().count() >= maxLines) {

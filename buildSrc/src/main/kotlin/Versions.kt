@@ -17,7 +17,7 @@ object Fabric {
         const val version = "0.4.+"
     }
     object Loom {
-        const val version = "0.2.3-SNAPSHOT"
+        const val version = "0.2.4-SNAPSHOT"
     }
     object Yarn {
         const val version = "${Minecraft.version}+build.+"
@@ -31,5 +31,5 @@ object Fabric {
 }
 
 object Fuel {
-    const val version = "2.1.0"
+    const val version = "2.0.1"
 }

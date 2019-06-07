@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(PlayerManager.class)
 @SuppressWarnings("unused")
 public class PlayerManagerMixin {
-    @Inject(at = @At("TAIL"), method = "onPlayerConnect")
+    @Inject(at = @At("HEAD"), method = "onPlayerConnect")
     void onPlayerConnect(ClientConnection clientConnection, ServerPlayerEntity entityPlayerServer, CallbackInfo ci) {
         System.out.println("mixin: player joined " + entityPlayerServer.getEntityName());
         JoinLeaveHandler.INSTANCE.handleJoin(entityPlayerServer.getEntityName());

@@ -1,4 +1,3 @@
-import moe.nikky.counter.CounterExtension
 import net.fabricmc.loom.task.RemapJarTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import plugin.generateconstants.GenerateConstantsTask
@@ -10,7 +9,8 @@ plugins {
     id("fabric-loom") version Fabric.Loom.version
     id("constantsGenerator")
     id("moe.nikky.persistentCounter") version "0.0.8-SNAPSHOT"
-    id("moe.nikky.loom-production-env") version "0.0.1-SNAPSHOT"
+//    id("moe.nikky.loom-production-env") version "0.0.1-SNAPSHOT"
+    id("moe.nikky.loom-production-env") version "0.0.1-dev"
     id("kotlinx-serialization") version Kotlin.version
 }
 
@@ -46,7 +46,9 @@ minecraft {
 production {
     server {
         workingDirectory = file("run")
+//        gui = false
     }
+    buildTasks += tasks.getByName("remapJar")
 }
 
 val folder = listOf("matterlink")
@@ -101,7 +103,7 @@ repositories {
 
 //configurations.runtime.extendsFrom(configurations.modCompile)
 configurations.modCompile.get().extendsFrom(configurations.include.get())
-//configurations.include.get().
+//configurations.include.get().isTransitive = true
 
 dependencies {
     minecraft(group = "com.mojang", name = "minecraft", version = Minecraft.version)
@@ -119,6 +121,11 @@ dependencies {
 //        group = "net.fabricmc.fabric-api",
 //        name = "fabric-api",
 //        version = Fabric.API.version
+//    )
+//    include(
+//        group = "net.fabricmc.fabric-api",
+//        name = "fabric-api-base",
+//        version = "0.1.0+"
 //    )
     include(
         group = "net.fabricmc.fabric-api",
@@ -146,6 +153,7 @@ dependencies {
 }
 
 tasks.getByName<ProcessResources>("processResources") {
+    outputs.upToDateWhen { false }
     filesMatching("fabric.mod.json") {
         expand(
             mutableMapOf(
@@ -156,8 +164,21 @@ tasks.getByName<ProcessResources>("processResources") {
     }
 }
 
-val jar = tasks.getByName<Jar>("jar")
-val remapJar = tasks.getByName<RemapJarTask>("remapJar")
+val jar = tasks.getByName<Jar>("jar") {
+    outputs.upToDateWhen { false }
+    dependsOn(tasks.getByName("clean"))
+}
+val remapJar = tasks.getByName<RemapJarTask>("remapJar") {
+    dependsOn(tasks.getByName("clean"))
+    doLast {
+        val modsDir = file("run").resolve("mods")
+        modsDir.deleteRecursively()
+        modsDir.mkdirs()
+
+        jar.archiveFile.get().asFile.copyTo(modsDir.resolve(jar.archiveFile.get().asFile.name), true)
+//        this.
+    }
+}
 
 //fun shadowComponents(publication: MavenPublication, vararg configurations: Configuration) {
 //    publication.pom.withXml {

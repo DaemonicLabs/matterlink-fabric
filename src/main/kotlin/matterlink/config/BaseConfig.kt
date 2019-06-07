@@ -511,6 +511,7 @@ data class BaseConfig(val rootDir: File) {
 
         MessageHandler.config.url = tmpCfg.connect.url
         MessageHandler.config.token = tmpCfg.connect.authToken
+        MessageHandler.config.gateway = tmpCfg.connect.gateway
         MessageHandler.config.reconnectWait = tmpCfg.connect.reconnectWait
 
         MessageHandler.config.systemUser = tmpCfg.outgoing.systemUser

@@ -7,7 +7,7 @@ import com.github.kittinunf.result.Result
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.serialization.json.JSON
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.list
 import matterlink.Matterlink
 import matterlink.MessageHandler
@@ -71,7 +71,7 @@ object UpdateChecker : CoroutineScope {
 
             "https://curse.nikky.moe/api/addon/287323/files".httpGet()
                 .header("User-Agent" to useragent)
-                .responseObject(kotlinxDeserializerOf(loader = CurseFile.serializer().list, json = JSON.nonstrict))
+                .responseObject(kotlinxDeserializerOf(loader = CurseFile.serializer().list, json = Json.nonstrict))
         }
 
         val apiUpdateList = when (result) {

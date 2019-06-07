@@ -1,10 +1,9 @@
 package matterlink.api
 
 import kotlinx.serialization.Encoder
-import kotlinx.serialization.Optional
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Serializer
-import kotlinx.serialization.json.JSON
+import kotlinx.serialization.json.Json
 
 /**
  * Created by nikky on 07/05/18.
@@ -14,22 +13,22 @@ import kotlinx.serialization.json.JSON
  */
 @Serializable
 data class ApiMessage(
-    @Optional var username: String = "",
-    @Optional var text: String = "",
-    @Optional var gateway: String = "",
-    @Optional var timestamp: String = "",
-    @Optional var channel: String = "",
-    @Optional var userid: String = "",
-    @Optional var avatar: String = "",
-    @Optional var account: String = "",
-    @Optional var protocol: String = "",
-    @Optional var event: String = "",
-    @Optional var id: String = "",
-    @Optional var Extra: Map<String, String>? = null
+    var username: String = "",
+    var text: String = "",
+    var gateway: String = "",
+    var timestamp: String = "",
+    var channel: String = "",
+    var userid: String = "",
+    var avatar: String = "",
+    var account: String = "",
+    var protocol: String = "",
+    var event: String = "",
+    var id: String = "",
+    var Extra: Map<String, String>? = null
 ) {
 
     fun encode(): String {
-        return JSON.nonstrict.stringify(ApiMessage.serializer(), this)
+        return Json.nonstrict.stringify(ApiMessage.serializer(), this)
     }
 
 
@@ -82,7 +81,7 @@ data class ApiMessage(
         }
 
         fun decode(input: String): ApiMessage {
-            return JSON.nonstrict.parse(ApiMessage.serializer(), input)
+            return Json.nonstrict.parse(ApiMessage.serializer(), input)
         }
     }
 }
