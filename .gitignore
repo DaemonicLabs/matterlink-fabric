@@ -15,6 +15,5 @@ classes/
 # fabric
 
 run/
-minecraft/
 
 *.hprof

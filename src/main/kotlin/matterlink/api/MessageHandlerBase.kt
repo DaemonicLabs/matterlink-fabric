@@ -15,12 +15,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowViaChannel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.flow.collect
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.list
 import matterlink.handlers.ServerChatHandler
@@ -162,66 +161,65 @@ open class MessageHandlerBase : CoroutineScope {
         }
     }
 
-
     @UseExperimental(FlowPreview::class)
     private fun messageFlow() = flowViaChannel<ApiMessage>(-1) { channel ->
-            launch(context = Dispatchers.IO + CoroutineName("msgReceiver")) {
-                loop@ while (isActive) {
-                    logger.info("opening connection")
-                    val url = "${config.url}/api/stream"
-                    val (request, response, result) = keepOpenManager.request(Method.GET, url)
-                        .apply {
-                            if (config.token.isNotEmpty()) {
-                                headers["Authorization"] = "Bearer ${config.token}"
-                            }
+        launch(context = Dispatchers.IO + CoroutineName("msgReceiver")) {
+            loop@ while (isActive) {
+                logger.info("opening connection")
+                val url = "${config.url}/api/stream"
+                val (request, response, result) = keepOpenManager.request(Method.GET, url)
+                    .apply {
+                        if (config.token.isNotEmpty()) {
+                            headers["Authorization"] = "Bearer ${config.token}"
                         }
-                        .responseObject(object : ResponseDeserializable<Unit> {
-                            override fun deserialize(reader: Reader) {
-    //                        runBlocking(Dispatchers.IO + CoroutineName("msgDecoder")) {
-                                logger.info("connected successfully")
-                                connectErrors = 0
-                                reconnectCooldown = 0
+                    }
+                    .responseObject(object : ResponseDeserializable<Unit> {
+                        override fun deserialize(reader: Reader) {
+                            //                        runBlocking(Dispatchers.IO + CoroutineName("msgDecoder")) {
+                            logger.info("connected successfully")
+                            connectErrors = 0
+                            reconnectCooldown = 0
 
-                                reader.useLines { lines ->
-                                    lines.forEach { line ->
-                                        val msg = ApiMessage.decode(line)
-                                        logger.debug("received: $msg")
-                                        if (msg.event != "api_connect") {
-                                            runBlocking {
-                                                channel.send(msg)
-                                            }
-                                            // messageBroadcastInput.send(msg)
+                            reader.useLines { lines ->
+                                lines.forEach { line ->
+                                    val msg = ApiMessage.decode(line)
+                                    logger.debug("received: $msg")
+                                    if (msg.event != "api_connect") {
+                                        runBlocking {
+                                            channel.send(msg)
                                         }
+                                        // messageBroadcastInput.send(msg)
                                     }
                                 }
                             }
-                            // }
-                        })
-
-                    when (result) {
-                        is Result.Success -> {
-                            logger.info("connection closed")
                         }
-                        is Result.Failure -> {
-                            connectErrors++
-                            reconnectCooldown = connectErrors * 1000L
-                            logger.error("connectErrors: $connectErrors")
-                            logger.error("connection error")
-                            logger.error("curl: ${request.cUrlString()}")
-                            logger.error(result.error.localizedMessage)
-                            result.error.exception.printStackTrace()
-                            if (connectErrors >= 10) {
-                                logger.error("Caught too many errors, closing bridge")
-                                stop("Interrupting connection to matterbridge API due to accumulated connection errors")
-                                break@loop
-                            }
+                        // }
+                    })
+
+                when (result) {
+                    is Result.Success -> {
+                        logger.info("connection closed")
+                    }
+                    is Result.Failure -> {
+                        connectErrors++
+                        reconnectCooldown = connectErrors * 1000L
+                        logger.error("connectErrors: $connectErrors")
+                        logger.error("connection error")
+                        logger.error("curl: ${request.cUrlString()}")
+                        logger.error(result.error.localizedMessage)
+                        result.error.exception.printStackTrace()
+                        if (connectErrors >= 10) {
+                            logger.error("Caught too many errors, closing bridge")
+                            stop("Interrupting connection to matterbridge API due to accumulated connection errors")
+                            break@loop
                         }
                     }
-                    delay(reconnectCooldown) // reconnect delay in ms
                 }
+                delay(reconnectCooldown) // reconnect delay in ms
             }
         }
     }
 }
+
 
 

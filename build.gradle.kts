@@ -1,3 +1,7 @@
+import com.matthewprenger.cursegradle.CurseArtifact
+import com.matthewprenger.cursegradle.CurseProject
+import com.matthewprenger.cursegradle.CurseUploadTask
+import com.matthewprenger.cursegradle.Options
 import net.fabricmc.loom.task.RemapJarTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import plugin.generateconstants.GenerateConstantsTask
@@ -6,12 +10,12 @@ plugins {
     idea
     `maven-publish`
     kotlin("jvm") version Kotlin.version
+    id("kotlinx-serialization") version Kotlin.version
     id("fabric-loom") version Fabric.Loom.version
     id("constantsGenerator")
     id("moe.nikky.persistentCounter") version "0.0.8-SNAPSHOT"
     id("moe.nikky.loom-production-env") version "0.0.1-SNAPSHOT"
-//    id("moe.nikky.loom-production-env") version "0.0.1-dev"
-    id("kotlinx-serialization") version Kotlin.version
+    id("com.matthewprenger.cursegradle") version "1.1.2"
 }
 
 idea {
@@ -29,15 +33,21 @@ base {
     archivesBaseName = Constants.modid
 }
 
+val branch = System.getenv("GIT_BRANCH")
+    ?.takeUnless { it == "master" }
+    ?.let { "-$it" }
+    ?: ""
+
 val major = Constants.major
 val minor = Constants.minor
 val patch = Constants.patch
 
-val buildnumber = counter.variable(id = "buildnumber", key = "$major.$minor.$patch${Env.branch}")
+val buildnumber = counter.variable(id = "buildnumber", key = "$major.$minor.$patch$branch")
 
 group = Constants.group
 description = Constants.description
-version = "$major.$minor.$patch-$buildnumber${Env.branch}"
+version = System.getenv("BUILD_NUMBER")?.let { "${Constants.modVersion}+build.$buildnumber" }
+    ?: "${Constants.modVersion}+local"
 
 minecraft {
     //    refmapName = "matterlink.refmap.json"
@@ -69,7 +79,7 @@ configure<ConstantsExtension> {
         field("PATCH_VERSION") value patch
         field("VERSION") value "$major.$minor.$patch"
         field("FULL_VERSION") value "$major.$minor.$patch-${Env.versionSuffix}"
-        field("MC_VERSION") value "1.14"
+        field("MC_VERSION") value Minecraft.version
         field("FABRIC_API_VERSION") value Fabric.API.version
     }
 }
@@ -113,20 +123,7 @@ dependencies {
     modCompile(group = "net.fabricmc", name = "fabric-loader", version = Fabric.Loader.version)
 
     modCompile(group = "net.fabricmc", name = "fabric-language-kotlin", version = Fabric.LanguageKotlin.version)
-//    compileOnly(group = "net.fabricmc", name = "fabric-language-kotlin", version = Fabric.LanguageKotlin.version)
 
-    // TODO: only include the bits i need
-//    modCompile(group = "net.fabricmc.fabric-api", name = "fabric-api", version = Fabric.API.version)
-//    include(
-//        group = "net.fabricmc.fabric-api",
-//        name = "fabric-api",
-//        version = Fabric.API.version
-//    )
-//    include(
-//        group = "net.fabricmc.fabric-api",
-//        name = "fabric-api-base",
-//        version = "0.1.0+"
-//    )
     include(
         group = "net.fabricmc.fabric-api",
         name = "fabric-api-base",
@@ -166,42 +163,66 @@ tasks.getByName<ProcessResources>("processResources") {
 
 val jar = tasks.getByName<Jar>("jar") {
     outputs.upToDateWhen { false }
-    dependsOn(tasks.getByName("clean"))
 }
 val remapJar = tasks.getByName<RemapJarTask>("remapJar") {
-    dependsOn(tasks.getByName("clean"))
-    doLast {
-        val modsDir = file("run").resolve("mods")
-        modsDir.deleteRecursively()
-        modsDir.mkdirs()
-
-        jar.archiveFile.get().asFile.copyTo(modsDir.resolve(jar.archiveFile.get().asFile.name), true)
-//        this.
-    }
+    setOutput(jar.archiveFile.get().asFile)
 }
 
 publishing {
     publications {
-        create("default", MavenPublication::class.java) {
+        create("main", MavenPublication::class.java) {
             groupId = project.group.toString()
             artifactId = project.name.toLowerCase()
             version = project.version.toString()
 
-            artifact(jar) {
+            artifact(remapJar.output) {
                 builtBy(remapJar)
             }
-//            shadowComponents(this, configurations.modCompile)
         }
     }
     repositories {
-        maven(url = "http://mavenupload.modmuss50.me/") {
-            val mavenPass: String? = project.properties["mavenPass"] as String?
-            mavenPass?.let {
+        val mavenPass: String? = project.properties["mavenPass"] as String?
+        mavenPass?.let {
+            maven(url = "http://mavenupload.modmuss50.me/") {
                 credentials {
                     username = "buildslave"
                     password = mavenPass
                 }
             }
+        }
+    }
+}
+
+val curse_api_key: String? by project
+if (curse_api_key != null && project.hasProperty("release")) {
+    val CURSEFORGE_RELEASE_TYPE: String by project
+    val CURSEFORGE_ID: String by project
+    curseforge {
+        options(closureOf<Options> {
+            forgeGradleIntegration = false
+        })
+        apiKey = curse_api_key
+        project(closureOf<CurseProject> {
+            id = CURSEFORGE_ID
+            releaseType = CURSEFORGE_RELEASE_TYPE
+            addGameVersion(Minecraft.version)
+
+            val changelog_file: String? by project
+            if (changelog_file != null) {
+                println("changelog = $changelog_file")
+                changelogType = "markdown"
+                changelog = file(changelog_file as String)
+            }
+            mainArtifact(
+                file("${project.buildDir}/libs/${base.archivesBaseName}-${version}.jar"),
+                closureOf<CurseArtifact> {
+                    displayName = "MatterLink ${Minecraft.version}-$version"
+                })
+        })
+    }
+    project.afterEvaluate {
+        tasks.getByName<CurseUploadTask>("curseforge${CURSEFORGE_ID}") {
+            dependsOn(remapJar)
         }
     }
 }

@@ -66,7 +66,7 @@ object UpdateChecker : CoroutineScope {
         logger.info("Checking for new versions...")
         val (request, response, result) = with(Matterlink) {
             val useragent =
-                "MatterLink/$modVersion Fabric/$mcVersion-$fabricVersion (https://github.com/elytra/MatterLink)"
+                "MatterLink/$modVersion Fabric/$mcVersion-$fabricVersion (https://github.com/DaemonicLabs/matterlink-fabric)"
             logger.debug("setting User-Agent: '$useragent'")
 
             "https://curse.nikky.moe/api/addon/287323/files".httpGet()
