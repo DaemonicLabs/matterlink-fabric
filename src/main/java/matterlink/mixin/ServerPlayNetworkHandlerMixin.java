@@ -2,7 +2,9 @@ package matterlink.mixin;
 
 import matterlink.handlers.ChatEvent;
 import matterlink.handlers.ChatProcessor;
+import matterlink.handlers.JoinLeaveHandler;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.listener.ServerPlayPacketListener;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -33,5 +35,18 @@ public abstract class ServerPlayNetworkHandlerMixin implements ServerPlayPacketL
         text = StringUtils.normalizeSpace(text);
 
         ChatProcessor.INSTANCE.sendToBridge(player.getEntityName(), text, ChatEvent.PLAIN, player.getUuid());
+    }
+
+    @Inject(
+            at = @At(
+                    value = "HEAD"
+            ),
+            method = "onDisconnected"
+    )
+    public void onDisconnected(Component component, CallbackInfo ci) {
+        String playername = player.getName().getString();
+        String message = component.getString();
+        JoinLeaveHandler.INSTANCE.handleLeave(playername, message);
+        System.out.println(String.format("mixin disconnected: %s lost connection: %s", playername, message));
     }
 }

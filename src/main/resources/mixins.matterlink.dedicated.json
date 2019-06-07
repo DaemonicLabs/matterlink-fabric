@@ -3,7 +3,6 @@
   "package": "matterlink.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "ClientConnectionMixin",
     "CommandManagerMixin",
     "MinecraftDedicatedServerMixin",
     "PlayerManagerMixin",

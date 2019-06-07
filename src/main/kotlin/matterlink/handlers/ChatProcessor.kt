@@ -27,22 +27,20 @@ object ChatProcessor {
     suspend fun sendToBridge(
         user: String,
         msg: String,
-        x: Int = 0,
-        y: Int = 0,
-        z: Int = 0,
-        dimension: Int? = null,
+//        x: Int = 0, y: Int = 0, z: Int = 0,
+//        dimension: Int? = null,
         event: ChatEvent,
         uuid: UUID? = null
     ): Boolean {
         //TODO: pass message to Locations
-        logger.info("position: $x $y $z dimension: $dimension")
+//        logger.info("position: $x $y $z dimension: $dimension")
         val message = msg.trim()
         if (uuid != null && BridgeCommandRegistry.handleCommand(message, user, uuid)) return true
         when {
             message.isNotBlank() -> LocationHandler.sendToLocations(
                 user = user,
                 msg = message,
-                x = x, y = y, z = z, dimension = dimension,
+//                x = x, y = y, z = z, dimension = dimension,
                 event = event,
                 cause = "Message from $user",
                 uuid = uuid

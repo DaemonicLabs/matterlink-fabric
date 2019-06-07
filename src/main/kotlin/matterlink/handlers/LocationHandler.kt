@@ -13,8 +13,8 @@ object LocationHandler {
     suspend fun sendToLocations(
         user: String = cfg.outgoing.systemUser,
         msg: String,
-        x: Int = -1, y: Int = -1, z: Int = -1,
-        dimension: Int? = null,
+//        x: Int = -1, y: Int = -1, z: Int = -1,
+//        dimension: Int? = null,
         event: ChatEvent,
         systemuser: Boolean = false,
         uuid: UUID? = null,

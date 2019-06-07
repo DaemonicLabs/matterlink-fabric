@@ -9,8 +9,8 @@ plugins {
     id("fabric-loom") version Fabric.Loom.version
     id("constantsGenerator")
     id("moe.nikky.persistentCounter") version "0.0.8-SNAPSHOT"
-//    id("moe.nikky.loom-production-env") version "0.0.1-SNAPSHOT"
-    id("moe.nikky.loom-production-env") version "0.0.1-dev"
+    id("moe.nikky.loom-production-env") version "0.0.1-SNAPSHOT"
+//    id("moe.nikky.loom-production-env") version "0.0.1-dev"
     id("kotlinx-serialization") version Kotlin.version
 }
 
@@ -179,38 +179,6 @@ val remapJar = tasks.getByName<RemapJarTask>("remapJar") {
 //        this.
     }
 }
-
-//fun shadowComponents(publication: MavenPublication, vararg configurations: Configuration) {
-//    publication.pom.withXml {
-//        val dependenciesNode = asNode().appendNode("dependencies")
-//
-//        project.configurations.shadow.allDependencies.forEach {
-//            if (it !is SelfResolvingDependency) {
-//                val dependencyNode = dependenciesNode.appendNode("dependency")
-//                dependencyNode.appendNode("groupId", it.group)
-//                dependencyNode.appendNode("artifactId", it.name)
-//                dependencyNode.appendNode("version", it.version)
-//                dependencyNode.appendNode("scope", "runtime")
-//            }
-//        }
-//        configurations.forEach { configuration ->
-//            println("processing: $configuration")
-//            configuration.dependencies.forEach inner@{ dependency ->
-//                if (dependency !is SelfResolvingDependency) {
-//                    if (dependency is ModuleDependency && !dependency.isTransitive) {
-//                        return@inner
-//                    }
-//
-//                    val dependencyNode = dependenciesNode.appendNode("dependency")
-//                    dependencyNode.appendNode("groupId", dependency.group)
-//                    dependencyNode.appendNode("artifactId", dependency.name)
-//                    dependencyNode.appendNode("version", dependency.version)
-//                    dependencyNode.appendNode("scope", configuration.name)
-//                }
-//            }
-//        }
-//    }
-//}
 
 publishing {
     publications {

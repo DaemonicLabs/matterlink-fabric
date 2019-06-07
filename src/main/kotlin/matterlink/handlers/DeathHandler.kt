@@ -25,9 +25,9 @@ object DeathHandler {
     suspend fun handleDeath(
         player: String,
         deathMessage: String,
-        damageType: String,
-        x: Int = 0, y: Int = 0, z: Int = 0,
-        dimension: Int? = null
+        damageType: String
+//        x: Int = 0, y: Int = 0, z: Int = 0,
+//        dimension: Int? = null
     ) {
         if (cfg.outgoing.filter.death) {
             var msg = deathMessage.stripColorOut.replace(player, player.stripColorOut.antiping)
@@ -39,7 +39,7 @@ object DeathHandler {
             }
             LocationHandler.sendToLocations(
                 msg = msg,
-                x = x, y = y, z = z, dimension = dimension,
+//                x = x, y = y, z = z, dimension = dimension,
                 event = ChatEvent.DEATH,
                 cause = "Death Event of $player",
                 systemuser = true

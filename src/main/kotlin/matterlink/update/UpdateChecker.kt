@@ -47,7 +47,7 @@ object UpdateChecker : CoroutineScope {
                         val difference = number - Matterlink.buildNumber
                         LocationHandler.sendToLocations(
                             msg = "MatterLink out of date! You are $difference builds behind! Please download new version from $url",
-                            x = 0, y = 0, z = 0, dimension = null,
+//                            x = 0, y = 0, z = 0, dimension = null,
                             event = ChatEvent.STATUS,
                             cause = "MatterLink update notice"
                         )
