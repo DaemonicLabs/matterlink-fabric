@@ -31,5 +31,6 @@ object Fabric {
 }
 
 object Fuel {
-    const val version = "2.0.1"
+//    const val version = "2.0.1"
+    const val version = "2.1.0"
 }

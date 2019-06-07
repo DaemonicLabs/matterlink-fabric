@@ -23,7 +23,8 @@ public abstract class ServerPlayNetworkHandlerMixin implements ServerPlayPacketL
     @Inject(
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/network/NetworkThreadUtils;forceMainThread(Lnet/minecraft/network/Packet;Lnet/minecraft/network/listener/PacketListener;Lnet/minecraft/server/world/ServerWorld;)V",
+//                    target = "Lnet/minecraft/network/NetworkThreadUtils;forceMainThread(Lnet/minecraft/network/Packet;Lnet/minecraft/network/listener/PacketListener;Lnet/minecraft/server/world/ServerWorld;)V",
+                    target = "Lnet/minecraft/server/PlayerManager;broadcastChatMessage(Lnet/minecraft/network/chat/Component;Z)V",
                     shift = At.Shift.AFTER
             ),
             method = "onChatMessage"

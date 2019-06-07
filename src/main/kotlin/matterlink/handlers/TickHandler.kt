@@ -22,11 +22,8 @@ object TickHandler : ServerTickCallback {
 
     suspend fun handleTick() {
         tickCounter++
-//        if (tickCounter % 100 == 0) {
-//            MessageHandlerInst.checkConnection()
-//        }
 
-        ServerChatHandler.writeIncomingToChat()
+//        ServerChatHandler.writeIncomingToChat()
 
         if (accumulator++ > updateInterval) {
             accumulator -= updateInterval

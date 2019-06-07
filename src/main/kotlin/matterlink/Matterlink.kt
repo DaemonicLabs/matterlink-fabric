@@ -31,6 +31,7 @@ object Matterlink : DedicatedServerModInitializer, MatterlinkBase() {
     }
 
     override fun wrappedSendToPlayers(msg: String) {
+        logger.info(msg)
         server.playerManager.playerList.forEach {
             it.sendChatMessage(TextComponent(msg), ChatMessageType.CHAT)
         }

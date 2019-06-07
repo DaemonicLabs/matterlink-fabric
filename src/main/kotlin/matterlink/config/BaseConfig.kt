@@ -70,6 +70,10 @@ data class BaseConfig(val rootDir: File) {
         //outgoing toggles
         val announceConnect: Boolean = true,
         val announceDisconnect: Boolean = true,
+        val announceReady: Boolean = true,
+        val announceConnectMessage: String = "Server started, connecting to matterbridge API",
+        val announceDisconnectMessage: String = "Server shutting down, disconnecting from matterbridge API",
+        val announceReadyMessage: String = "World loaded",
         val stripColors: Boolean = true,
         val pasteEEKey: String = "",
         val inlineLimit: Int = 5,
@@ -359,6 +363,26 @@ data class BaseConfig(val rootDir: File) {
                             "announceDisconnect",
                             announceConnect,
                             "announce intention to disconnect / reconnect"
+                        ),
+                        announceReady = it.getOrDefault(
+                            "announceReady",
+                            announceReady,
+                            "announce when the server finished loading the world"
+                        ),
+                        announceConnectMessage = it.getOrDefault(
+                            "announceConnectMessage",
+                            announceConnectMessage,
+                            "message to send on establishing api connection"
+                        ),
+                        announceDisconnectMessage = it.getOrDefault(
+                            "announceDisconnectMessage",
+                            announceDisconnectMessage,
+                            "message to send on severing api connection"
+                        ),
+                        announceReadyMessage = it.getOrDefault(
+                            "announceReadyMessage",
+                            announceReadyMessage,
+                            "message to send when the server loaded the world"
                         ),
                         stripColors = it.getOrDefault(
                             "stripColors",

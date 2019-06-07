@@ -18,7 +18,10 @@ public class CommandManagerMixin {
     @Final
     public CommandDispatcher<ServerCommandSource> dispatcher;
 
-    @Inject(at = @At("RETURN"), method = "<init>(Z)V")
+    @Inject(
+            at = @At("RETURN"),
+            method = "<init>(Z)V"
+    )
     private void init(CallbackInfo info) {
         TestCommand.INSTANCE.register(dispatcher);
     }

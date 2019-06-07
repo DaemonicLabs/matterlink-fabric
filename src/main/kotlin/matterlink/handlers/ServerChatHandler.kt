@@ -1,24 +1,14 @@
 package matterlink.handlers
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import matterlink.Matterlink
-import matterlink.MessageHandler
 import matterlink.api.ApiMessage
 import matterlink.command.BridgeCommandRegistry
 import matterlink.config.cfg
 import matterlink.format
 import matterlink.logger
-import java.util.UUID
 
 object ServerChatHandler {
-    @UseExperimental(ExperimentalCoroutinesApi::class)
-    val rcvChannel = MessageHandler.broadcast.openSubscription()
-
-    /**
-     * This method must be called every server tick with no arguments.
-     */
-    suspend fun writeIncomingToChat() {
-        val nextMessage = rcvChannel.poll() ?: return
+    suspend fun writeMessageToChat(nextMessage: ApiMessage) {
 
         val filter = cfg.incoming.filter
 

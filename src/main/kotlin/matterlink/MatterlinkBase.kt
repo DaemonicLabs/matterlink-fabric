@@ -1,5 +1,7 @@
 package matterlink
 
+import kotlinx.coroutines.runBlocking
+import matterlink.api.ApiMessage
 import matterlink.command.BridgeCommandRegistry
 import matterlink.command.IBridgeCommand
 import matterlink.command.IMinecraftCommandSender
@@ -57,11 +59,15 @@ abstract class MatterlinkBase {
         serverStartTime = System.currentTimeMillis()
 
         if (cfg.connect.autoConnect)
-            MessageHandler.start("Server started, connecting to matterbridge API", true)
+            MessageHandler.start(cfg.outgoing.announceConnectMessage, true)
         UpdateChecker.check()
     }
 
+    fun onShutdown() = runBlocking {
+        stop()
+    }
+
     suspend fun stop() {
-        MessageHandler.stop("Server shutting down, disconnecting from matterbridge API")
+        MessageHandler.stop(cfg.outgoing.announceDisconnectMessage)
     }
 }

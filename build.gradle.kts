@@ -211,7 +211,7 @@ task<DefaultTask>("depsize") {
     description = "prints dependency sizes"
     doLast {
         val formatStr = "%,10.2f"
-        val size = configurations.default.resolve()
+        val size = configurations.modCompile.resolve()
             .map { it.length() / (1024.0 * 1024.0) }.sum()
 
         val out = buildString {

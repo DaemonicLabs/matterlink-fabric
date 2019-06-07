@@ -1,5 +1,6 @@
 package matterlink
 
+import kotlinx.coroutines.runBlocking
 import matterlink.api.ApiMessage
 import matterlink.api.MessageHandlerBase
 import matterlink.config.cfg
@@ -58,6 +59,15 @@ object MessageHandler : MessageHandlerBase() {
             }
         }
         super.transmit(msg)
+    }
+
+
+    fun afterServerSetup() {
+        if (cfg.outgoing.announceReady) {
+            runBlocking {
+                transmit(ApiMessage(text = cfg.outgoing.announceReadyMessage))
+            }
+        }
     }
 }
 
