@@ -14,7 +14,7 @@ plugins {
     id("fabric-loom") version Fabric.Loom.version
     id("constantsGenerator")
     id("moe.nikky.persistentCounter") version "0.0.8-SNAPSHOT"
-    id("moe.nikky.loom-production-env") version "0.0.1-SNAPSHOT"
+//    id("moe.nikky.loom-production-env") version "0.0.1-SNAPSHOT"
     id("com.matthewprenger.cursegradle") version "1.1.2"
 }
 
@@ -49,17 +49,17 @@ description = Constants.description
 version = System.getenv("BUILD_NUMBER")?.let { "${Constants.modVersion}+build.$buildnumber" }
     ?: "${Constants.modVersion}+local"
 
-minecraft {
-    //    refmapName = "matterlink.refmap.json"
-}
+//loom {
+//    //    refmapName = "matterlink.refmap.json"
+//}
 
-production {
-    server {
-        workingDirectory = file("run")
-//        gui = false
-    }
-    buildTasks += tasks.getByName("remapJar")
-}
+//production {
+//    server {
+//        workingDirectory = file("run")
+////        gui = false
+//    }
+//    buildTasks += tasks.getByName("remapJar")
+//}
 
 val folder = listOf("matterlink")
 configure<ConstantsExtension> {
@@ -111,41 +111,43 @@ repositories {
     jcenter()
 }
 
-//configurations.runtime.extendsFrom(configurations.modCompile)
-configurations.modCompile.get().extendsFrom(configurations.include.get())
+//configurations.implementation.get().extendsFrom(configurations.include.get())
+//configurations.modCompile.get().extendsFrom(configurations.include.get())
 //configurations.include.get().isTransitive = true
 
 dependencies {
     minecraft(group = "com.mojang", name = "minecraft", version = Minecraft.version)
 
-    mappings(group = "net.fabricmc", name = "yarn", version = Fabric.Yarn.version)
+    mappings(group = "net.fabricmc", name = "yarn", version = Fabric.Yarn.version, classifier = "v2")
 
-    modCompile(group = "net.fabricmc", name = "fabric-loader", version = Fabric.Loader.version)
+//    api(kotlin("stdlib", Kotlin.version))
 
-    modCompile(group = "net.fabricmc", name = "fabric-language-kotlin", version = Fabric.LanguageKotlin.version)
+//    loom.deobf(implementation(group = "net.fabricmc", name = "fabric-loader", version = Fabric.Loader.version))
+    modImplementation(group = "net.fabricmc", name = "fabric-loader", version = Fabric.Loader.version)
 
-    include(
-        group = "net.fabricmc.fabric-api",
-        name = "fabric-api-base",
-        version = "0.1.0+"
-    )
-    include(
-        group = "net.fabricmc.fabric-api",
-        name = "fabric-events-lifecycle",
-        version = "0.1.0+"
-    )
+    api(group = "net.fabricmc", name = "fabric-language-kotlin", version = Fabric.LanguageKotlin.version)
 
-    include(
-        group = "org.jetbrains.kotlinx",
-        name = "kotlinx-serialization-runtime",
-        version = KotlinX.Serialization.version
-    )
+    modImplementation(group = "net.fabricmc.fabric-api", name = "fabric-api-base", version = "0.1.3+")
+    modImplementation(group = "net.fabricmc.fabric-api", name = "fabric-events-lifecycle-v0", version = "0.1.2+")
 
+    // only in dev env ?
+//    include(group = "net.fabricmc", name = "fabric-language-kotlin", version = Fabric.LanguageKotlin.version)
+//    include(group = "net.fabricmc.fabric-api", name = "fabric-api-base", version = "0.1.3+")
+//    include(group = "net.fabricmc.fabric-api", name = "fabric-events-lifecycle-v0", version = "0.1.2+")
+
+    api(group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-runtime", version = KotlinX.Serialization.version)
+    include(group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-runtime", version = KotlinX.Serialization.version)
+
+    api(group = "com.github.kittinunf.fuel", name = "fuel", version = Fuel.version)
+    api(group = "com.github.kittinunf.fuel", name = "fuel-kotlinx-serialization", version = Fuel.version)
+    api(group = "com.github.kittinunf.result", name = "result", version = "2.2.0")
+//    api(group = "com.github.kittinunf.fuel", name = "fuel-coroutines", version = Fuel.version)
     include(group = "com.github.kittinunf.fuel", name = "fuel", version = Fuel.version)
-    include(group = "com.github.kittinunf.fuel", name = "fuel-coroutines", version = Fuel.version)
     include(group = "com.github.kittinunf.fuel", name = "fuel-kotlinx-serialization", version = Fuel.version)
-    include(group = "com.github.kittinunf.result", name = "result", version = "2.0.0")
+    include(group = "com.github.kittinunf.result", name = "result", version = "2.2.0")
+//    include(group = "com.github.kittinunf.fuel", name = "fuel-coroutines", version = Fuel.version)
 
+    api(group = "blue.endless", name = "jankson", version = "1.1.0")
     include(group = "blue.endless", name = "jankson", version = "1.1.0")
 }
 
@@ -165,7 +167,7 @@ val jar = tasks.getByName<Jar>("jar") {
     outputs.upToDateWhen { false }
 }
 val remapJar = tasks.getByName<RemapJarTask>("remapJar") {
-    setOutput(jar.archiveFile.get().asFile)
+    //    setOutput(jar.archiveFile.get().asFile)
 }
 
 publishing {
@@ -175,9 +177,7 @@ publishing {
             artifactId = project.name.toLowerCase()
             version = project.version.toString()
 
-            artifact(remapJar.output) {
-                builtBy(remapJar)
-            }
+            artifact(remapJar)
         }
     }
     repositories {
@@ -214,7 +214,7 @@ if (curse_api_key != null && project.hasProperty("release")) {
                 changelog = file(changelog_file as String)
             }
             mainArtifact(
-                file("${project.buildDir}/libs/${base.archivesBaseName}-${version}.jar"),
+                remapJar.archiveFile,
                 closureOf<CurseArtifact> {
                     displayName = "MatterLink ${Minecraft.version}-$version"
                 })

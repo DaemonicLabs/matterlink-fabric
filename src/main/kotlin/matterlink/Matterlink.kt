@@ -13,9 +13,9 @@ import matterlink.config.cfg
 import matterlink.handlers.TickHandler
 import net.fabricmc.api.DedicatedServerModInitializer
 import net.fabricmc.fabric.api.event.server.ServerTickCallback
-import net.minecraft.network.chat.ChatMessageType
-import net.minecraft.network.chat.TextComponent
+import net.minecraft.network.MessageType
 import net.minecraft.server.dedicated.MinecraftDedicatedServer
+import net.minecraft.text.LiteralText
 import java.io.File
 import java.util.UUID
 
@@ -33,16 +33,16 @@ object Matterlink : DedicatedServerModInitializer, MatterlinkBase() {
     override fun wrappedSendToPlayers(msg: String) {
         logger.info(msg)
         server.playerManager.playerList.forEach {
-            it.sendChatMessage(TextComponent(msg), ChatMessageType.CHAT)
+            it.sendChatMessage(LiteralText(msg), MessageType.CHAT)
         }
     }
 
     override fun wrappedSendToPlayer(username: String, msg: String) {
-        server.playerManager.getPlayer(username)?.sendChatMessage(TextComponent(msg), ChatMessageType.CHAT)
+        server.playerManager.getPlayer(username)?.sendChatMessage(LiteralText(msg), MessageType.CHAT)
     }
 
     override fun wrappedSendToPlayer(uuid: UUID, msg: String) {
-        server.playerManager.getPlayer(uuid)?.sendChatMessage(TextComponent(msg), ChatMessageType.CHAT)
+        server.playerManager.getPlayer(uuid)?.sendChatMessage(LiteralText(msg), MessageType.CHAT)
     }
 
     override fun isOnline(username: String): Boolean {

@@ -4,7 +4,9 @@ import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.fuel.serialization.kotlinxDeserializerOf
 import com.github.kittinunf.result.Result
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JSON
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonConfiguration
+import matterlink.jsonNonstrict
 import matterlink.logger
 
 
@@ -22,7 +24,7 @@ data class Build(
         val (request, response, result) = "$url/api/json"
             .httpGet()
             .header("User-Agent" to userAgent)
-            .responseObject(kotlinxDeserializerOf(loader = BuildWithDetails.serializer(), json = JSON.nonstrict))
+            .responseObject(kotlinxDeserializerOf(loader = BuildWithDetails.serializer(), json = jsonNonstrict))
         return when (result) {
             is Result.Success -> {
                 result.value

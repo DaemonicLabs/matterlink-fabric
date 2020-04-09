@@ -5,11 +5,15 @@ import blue.endless.jankson.JsonArray
 import blue.endless.jankson.JsonElement
 import blue.endless.jankson.JsonObject
 import blue.endless.jankson.impl.Marshaller
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonConfiguration
 import matterlink.config.cfg
 import java.io.PrintWriter
 import java.io.StringWriter
 
 private const val ZWSP: Char = '\u200b'
+
+val jsonNonstrict = Json(JsonConfiguration.Stable.copy(ignoreUnknownKeys = true))
 
 //Inserts a zero-width space at index 1 in the string'
 

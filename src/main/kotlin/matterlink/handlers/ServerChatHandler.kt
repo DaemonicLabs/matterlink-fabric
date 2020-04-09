@@ -5,6 +5,7 @@ import matterlink.api.ApiMessage
 import matterlink.command.BridgeCommandRegistry
 import matterlink.config.cfg
 import matterlink.format
+import matterlink.jsonNonstrict
 import matterlink.logger
 
 object ServerChatHandler {
@@ -52,7 +53,7 @@ object ServerChatHandler {
             else -> {
                 val user = nextMessage.username
                 val text = nextMessage.text
-                val json = nextMessage.encode()
+                val json = jsonNonstrict.stringify(ApiMessage.serializer(), nextMessage)
                 logger.debug("Threw out message with unhandled event: ${nextMessage.event}")
                 logger.debug(" Message contents:")
                 logger.debug(" User: $user")

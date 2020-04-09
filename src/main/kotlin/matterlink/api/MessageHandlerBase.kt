@@ -5,24 +5,19 @@ import com.github.kittinunf.fuel.core.Method
 import com.github.kittinunf.fuel.core.ResponseDeserializable
 import com.github.kittinunf.fuel.core.extensions.cUrlString
 import com.github.kittinunf.fuel.core.extensions.jsonBody
-import com.github.kittinunf.fuel.coroutines.awaitStringResponseResult
 import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.fuel.httpPost
 import com.github.kittinunf.result.Result
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowViaChannel
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.builtins.list
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonConfiguration
 import kotlinx.serialization.list
 import matterlink.handlers.ServerChatHandler
+import matterlink.jsonNonstrict
 import matterlink.logger
 import java.io.Reader
 import java.net.ConnectException
@@ -34,8 +29,7 @@ import kotlin.coroutines.CoroutineContext
  * @author Nikky
  * @version 1.0
  */
-open class MessageHandlerBase : CoroutineScope {
-    override val coroutineContext: CoroutineContext = Job()
+open class MessageHandlerBase {
     private var enabled = false
 
     private var connectErrors = 0
@@ -60,8 +54,8 @@ open class MessageHandlerBase : CoroutineScope {
 
     private var rcvJob: Job? = null
 
-    @UseExperimental(FlowPreview::class)
-    suspend fun start(message: String?, clear: Boolean) {
+    @OptIn(FlowPreview::class)
+    suspend fun start(message: String?, clear: Boolean) = coroutineScope {
         logger.debug("starting connection")
         if (clear) {
             clear()
@@ -84,7 +78,7 @@ open class MessageHandlerBase : CoroutineScope {
         }
     }
 
-    private suspend fun clear() {
+    private fun clear() {
         val url = "${config.url}/api/messages"
         val (request, response, result) = url.httpGet()
             .apply {
@@ -92,11 +86,11 @@ open class MessageHandlerBase : CoroutineScope {
                     headers["Authorization"] = "Bearer ${config.token}"
                 }
             }
-            .awaitStringResponseResult()
+            .responseString()
 
         when (result) {
             is Result.Success -> {
-                val messages: List<ApiMessage> = Json.nonstrict.parse(ApiMessage.serializer().list, result.value)
+                val messages: List<ApiMessage> = jsonNonstrict.parse(ApiMessage.serializer().list, result.value)
                 messages.forEach { msg ->
                     logger.trace("skipping $msg")
                 }
@@ -135,7 +129,7 @@ open class MessageHandlerBase : CoroutineScope {
                             headers["Authorization"] = "Bearer ${config.token}"
                         }
                     }
-                    .jsonBody(it.encode())
+                    .jsonBody(jsonNonstrict.stringify(ApiMessage.serializer(), it))
                     .responseString()
                 when (result) {
                     is Result.Success -> {
@@ -161,8 +155,8 @@ open class MessageHandlerBase : CoroutineScope {
         }
     }
 
-    @UseExperimental(FlowPreview::class)
-    private fun messageFlow() = flowViaChannel<ApiMessage>(-1) { channel ->
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun messageFlow() = channelFlow<ApiMessage> { //channel ->
         launch(context = Dispatchers.IO + CoroutineName("msgReceiver")) {
             loop@ while (isActive) {
                 logger.info("opening connection")
@@ -182,7 +176,7 @@ open class MessageHandlerBase : CoroutineScope {
 
                             reader.useLines { lines ->
                                 lines.forEach { line ->
-                                    val msg = ApiMessage.decode(line)
+                                    val msg = jsonNonstrict.parse(ApiMessage.serializer(), line)
                                     logger.debug("received: $msg")
                                     if (msg.event != "api_connect") {
                                         runBlocking {

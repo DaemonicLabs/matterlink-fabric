@@ -28,7 +28,7 @@ abstract class ServerPlayerEntityMixin {
         PlayerEntity player = (PlayerEntity) (Object) this;
         String name = player.getEntityName();
         // TODO: get real deathmessage
-        String deathMessage = damageSource.getDeathMessage(player).getFormattedText();
+        String deathMessage = damageSource.getDeathMessage(player).asFormattedString();
         DeathHandler.INSTANCE.handleDeath(player.getEntityName(), deathMessage, damageSource.name);
     }
 }

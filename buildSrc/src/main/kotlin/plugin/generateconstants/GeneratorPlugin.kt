@@ -30,8 +30,8 @@ open class GeneratorPlugin : Plugin<Project> {
                 this.maybeCreate("main").allSource.srcDir(folder)
             }
 
-            val constExtension = extensions.create("constants", ConstantsExtension::class.java)
-            val generateConstants = task<GenerateConstantsTask>("generateConstants") { }
+            extensions.create("constants", ConstantsExtension::class.java)
+            task<GenerateConstantsTask>("generateConstants") { }
         }
 
         project.afterEvaluate {

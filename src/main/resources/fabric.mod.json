@@ -29,7 +29,7 @@
   ],
   "depends": {
     "fabric-language-kotlin": ">=${kotlinVersion}",
-    "fabric-events-lifecycle": ">=0.1.0"
+    "fabric-events-lifecycle-v0": ">=0.1.2"
   },
   "license": "MIT"
 }
